@@ -16,6 +16,24 @@ GITHUB_REPO = st.secrets.get("GITHUB_REPO", "")  # format: "username/repo-name"
 GITHUB_BRANCH = "main"
 
 
+def test_github_connection():
+    """Test la connexion GitHub et affiche les détails"""
+    if not GITHUB_TOKEN or not GITHUB_REPO:
+        return False, "Token ou repo manquant"
+    
+    url = f"https://api.github.com/repos/{GITHUB_REPO}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            return True, "Connexion GitHub OK"
+        else:
+            return False, f"Erreur API GitHub: {response.status_code} - {response.text}"
+    except Exception as e:
+        return False, f"Erreur de connexion: {str(e)}"
+
+
 def github_file_exists(file_path):
     """Vérifie si un fichier existe sur GitHub"""
     if not GITHUB_TOKEN or not GITHUB_REPO:
@@ -23,56 +41,82 @@ def github_file_exists(file_path):
     
     url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{file_path}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    response = requests.get(url, headers=headers)
-    return response.status_code == 200
+    
+    try:
+        response = requests.get(url, headers=headers)
+        return response.status_code == 200
+    except:
+        return False
 
 
 def load_from_github(file_path):
     """Charge un fichier depuis GitHub"""
     if not GITHUB_TOKEN or not GITHUB_REPO:
+        st.error("Configuration GitHub manquante")
         return None
     
     url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{file_path}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    response = requests.get(url, headers=headers)
     
-    if response.status_code == 200:
-        content = response.json()["content"]
-        decoded_content = base64.b64decode(content).decode('utf-8')
-        return decoded_content
-    return None
+    try:
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 200:
+            content = response.json()["content"]
+            decoded_content = base64.b64decode(content).decode('utf-8')
+            return decoded_content
+        else:
+            st.warning(f"Impossible de charger {file_path}: {response.status_code}")
+            return None
+    except Exception as e:
+        st.error(f"Erreur lors du chargement de {file_path}: {str(e)}")
+        return None
 
 
 def save_to_github(file_path, content, commit_message="Update from Streamlit app"):
-    """Sauvegarde un fichier sur GitHub"""
+    """Sauvegarde un fichier sur GitHub avec gestion d'erreur améliorée"""
     if not GITHUB_TOKEN or not GITHUB_REPO:
+        st.error("Configuration GitHub manquante pour la sauvegarde")
         return False
     
     url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{file_path}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     
-    # Vérifier si le fichier existe déjà pour récupérer le SHA
-    response = requests.get(url, headers=headers)
-    sha = None
-    if response.status_code == 200:
-        sha = response.json()["sha"]
-    
-    # Encoder le contenu
-    encoded_content = base64.b64encode(content.encode('utf-8')).decode('utf-8')
-    
-    # Préparer les données
-    data = {
-        "message": commit_message,
-        "content": encoded_content,
-        "branch": GITHUB_BRANCH
-    }
-    
-    if sha:
-        data["sha"] = sha
-    
-    # Envoyer la requête
-    response = requests.put(url, headers=headers, json=data)
-    return response.status_code in [200, 201]
+    try:
+        # Vérifier si le fichier existe déjà pour récupérer le SHA
+        response = requests.get(url, headers=headers)
+        sha = None
+        if response.status_code == 200:
+            sha = response.json()["sha"]
+        elif response.status_code != 404:
+            st.error(f"Erreur lors de la vérification du fichier: {response.status_code}")
+            return False
+        
+        # Encoder le contenu
+        encoded_content = base64.b64encode(content.encode('utf-8')).decode('utf-8')
+        
+        # Préparer les données
+        data = {
+            "message": commit_message,
+            "content": encoded_content,
+            "branch": GITHUB_BRANCH
+        }
+        
+        if sha:
+            data["sha"] = sha
+        
+        # Envoyer la requête
+        response = requests.put(url, headers=headers, json=data)
+        
+        if response.status_code in [200, 201]:
+            return True
+        else:
+            st.error(f"Erreur lors de la sauvegarde sur GitHub: {response.status_code} - {response.text}")
+            return False
+            
+    except Exception as e:
+        st.error(f"Exception lors de la sauvegarde: {str(e)}")
+        return False
 
 
 # =========================
@@ -91,34 +135,53 @@ COLUMNS = [
 
 
 def ensure_files():
-    # Créer les fichiers par défaut s'ils n'existent pas sur GitHub
-    if not github_file_exists(CONFIG_FILE):
-        default_config = json.dumps({"bankroll_start": 1000.0})
-        save_to_github(CONFIG_FILE, default_config, "Initialize config file")
-    
-    if not github_file_exists(BETS_FILE):
-        empty_df = pd.DataFrame(columns=COLUMNS)
-        csv_content = empty_df.to_csv(index=False)
-        save_to_github(BETS_FILE, csv_content, "Initialize bets file")
+    """Créer les fichiers par défaut s'ils n'existent pas sur GitHub"""
+    try:
+        if not github_file_exists(CONFIG_FILE):
+            default_config = json.dumps({"bankroll_start": 1000.0})
+            success = save_to_github(CONFIG_FILE, default_config, "Initialize config file")
+            if success:
+                st.success("Fichier de configuration créé sur GitHub")
+            else:
+                st.error("Échec de création du fichier de configuration")
+        
+        if not github_file_exists(BETS_FILE):
+            empty_df = pd.DataFrame(columns=COLUMNS)
+            csv_content = empty_df.to_csv(index=False)
+            success = save_to_github(BETS_FILE, csv_content, "Initialize bets file")
+            if success:
+                st.success("Fichier de paris créé sur GitHub")
+            else:
+                st.error("Échec de création du fichier de paris")
+    except Exception as e:
+        st.error(f"Erreur lors de la création des fichiers: {str(e)}")
 
 
 def load_config():
+    """Charge la configuration depuis GitHub"""
     try:
         content = load_from_github(CONFIG_FILE)
         if content:
             cfg = json.loads(content)
             return float(cfg.get("bankroll_start", 1000.0))
-    except:
-        pass
+    except Exception as e:
+        st.warning(f"Erreur lors du chargement de la config: {str(e)}")
     return 1000.0
 
 
 def save_config(bankroll_start):
+    """Sauvegarde la configuration sur GitHub"""
     try:
         config_data = json.dumps({"bankroll_start": float(bankroll_start)})
-        save_to_github(CONFIG_FILE, config_data, "Update bankroll config")
-    except:
-        pass
+        success = save_to_github(CONFIG_FILE, config_data, "Update bankroll config")
+        if success:
+            st.success("Configuration sauvegardée sur GitHub")
+        else:
+            st.error("Échec de sauvegarde de la configuration")
+        return success
+    except Exception as e:
+        st.error(f"Erreur lors de la sauvegarde de la config: {str(e)}")
+        return False
 
 
 def ensure_schema(df: pd.DataFrame) -> pd.DataFrame:
@@ -141,25 +204,37 @@ def ensure_schema(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def load_bets():
+    """Charge les paris depuis GitHub"""
     try:
         content = load_from_github(BETS_FILE)
         if content:
             from io import StringIO
             df = pd.read_csv(StringIO(content))
             return ensure_schema(df)
-    except:
-        pass
+    except Exception as e:
+        st.warning(f"Erreur lors du chargement des paris: {str(e)}")
     return pd.DataFrame(columns=COLUMNS)
 
 
 def save_bets(df: pd.DataFrame):
+    """Sauvegarde les paris sur GitHub avec feedback utilisateur"""
     try:
         out = ensure_schema(df).copy()
         out["date"] = pd.to_datetime(out["date"], errors="coerce").dt.strftime("%Y-%m-%d")
         csv_content = out.to_csv(index=False)
-        save_to_github(BETS_FILE, csv_content, "Update bets data")
-    except:
-        pass
+        
+        success = save_to_github(BETS_FILE, csv_content, "Update bets data")
+        
+        if success:
+            st.success("✅ Paris sauvegardés sur GitHub")
+            return True
+        else:
+            st.error("❌ Échec de sauvegarde sur GitHub")
+            return False
+            
+    except Exception as e:
+        st.error(f"❌ Erreur lors de la sauvegarde des paris: {str(e)}")
+        return False
 
 
 def recompute_next_id():
@@ -175,10 +250,19 @@ def recompute_next_id():
 # =========================
 st.set_page_config(page_title="Bankroll & Paris", layout="wide")
 
-# Vérifier la configuration GitHub
+# Test de connexion GitHub au démarrage
 if not GITHUB_TOKEN or not GITHUB_REPO:
     st.error("⚠️ Configuration GitHub manquante. Vérifiez vos secrets Streamlit.")
+    st.info("Assurez-vous d'avoir configuré GITHUB_TOKEN et GITHUB_REPO dans les secrets")
     st.stop()
+
+# Test de connexion
+github_ok, github_msg = test_github_connection()
+if not github_ok:
+    st.error(f"❌ Problème de connexion GitHub: {github_msg}")
+    st.stop()
+else:
+    st.success(f"✅ {github_msg}")
 
 ensure_files()
 
@@ -310,6 +394,15 @@ with st.sidebar:
 
     st.markdown("---")
     st.subheader("Sauvegarde")
+    
+    # Bouton de test de connexion GitHub
+    if st.button("🔗 Tester connexion GitHub"):
+        github_ok, github_msg = test_github_connection()
+        if github_ok:
+            st.success(github_msg)
+        else:
+            st.error(github_msg)
+    
     exp_df = ensure_schema(st.session_state.bets).copy()
     if not exp_df.empty:
         exp_df["date"] = pd.to_datetime(exp_df["date"], errors="coerce").dt.strftime("%Y-%m-%d")
@@ -452,9 +545,13 @@ if add_clicked:
         st.session_state.bets = pd.concat([st.session_state.bets, pd.DataFrame([new_row])], ignore_index=True)
         st.session_state.bets = ensure_schema(st.session_state.bets)
         st.session_state.bets = recompute_payouts(st.session_state.bets)
-        save_bets(st.session_state.bets)
-        st.success("Pari ajouté.")
-        st.session_state.next_id = int(st.session_state.next_id) + 1
+        
+        # Sauvegarde avec feedback
+        if save_bets(st.session_state.bets):
+            st.success("Pari ajouté et sauvegardé !")
+            st.session_state.next_id = int(st.session_state.next_id) + 1
+        else:
+            st.error("Pari ajouté mais problème de sauvegarde GitHub")
 
 # =========================
 # Paris en cours (actions rapides)
