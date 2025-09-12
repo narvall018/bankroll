@@ -370,7 +370,7 @@ def format_money(x):
 # Sidebar (paramètres + I/O)
 # =========================
 with st.sidebar:
-    st.header("Paramètres")
+    st.header("⚙️ Paramètres")
     new_bankroll = st.number_input(
         "Bankroll initiale (€)", min_value=0.0, value=float(st.session_state.bankroll_start), step=50.0
     )
@@ -393,7 +393,7 @@ with st.sidebar:
             fixed_value = st.number_input("Pourcentage fixe (% bankroll)", min_value=0.0, max_value=100.0, value=1.0, step=0.5, key="fixed_percent")
 
     st.markdown("---")
-    st.subheader("Sauvegarde")
+    st.subheader("💾 Sauvegarde")
     
     # Bouton de test de connexion GitHub
     if st.button("🔗 Tester connexion GitHub"):
@@ -407,9 +407,9 @@ with st.sidebar:
     if not exp_df.empty:
         exp_df["date"] = pd.to_datetime(exp_df["date"], errors="coerce").dt.strftime("%Y-%m-%d")
     csv = exp_df.to_csv(index=False).encode("utf-8")
-    st.download_button("Télécharger les paris (CSV)", data=csv, file_name="paris_export.csv", mime="text/csv")
+    st.download_button("📥 Télécharger CSV", data=csv, file_name="paris_export.csv", mime="text/csv")
 
-    up = st.file_uploader("Importer un CSV de paris", type=["csv"])
+    up = st.file_uploader("📤 Importer un CSV", type=["csv"])
     if up is not None:
         try:
             df_new = pd.read_csv(up)
@@ -436,24 +436,43 @@ st.session_state.bets = ensure_schema(st.session_state.bets)
 st.session_state.bets = recompute_payouts(st.session_state.bets)
 
 # =========================
-# KPIs
+# KPIs (toujours visibles)
 # =========================
+st.title("🎯 Gestion de Bankroll & Paris")
+
 bankroll_start = float(st.session_state.bankroll_start)
 available = bankroll_available(st.session_state.bets, bankroll_start)
 pnl = realized_pnl(st.session_state.bets)
 total_locked = st.session_state.bets.loc[st.session_state.bets["status"]=="En attente","stake"].sum() if not st.session_state.bets.empty else 0.0
 
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Bankroll initiale", f"{format_money(bankroll_start)} €")
-col2.metric("Bankroll disponible", f"{format_money(available)} €")
-col3.metric("PNL réalisé", f"{format_money(pnl)} €")
-col4.metric("Mises en attente", f"{format_money(total_locked)} €")
+col1.metric("💰 Bankroll initiale", f"{format_money(bankroll_start)} €")
+col2.metric("💵 Bankroll disponible", f"{format_money(available)} €")
+col3.metric("📈 PNL réalisé", f"{format_money(pnl)} €")
+col4.metric("⏳ Mises en attente", f"{format_money(total_locked)} €")
+
+# KPIs supplémentaires
+settled = st.session_state.bets[st.session_state.bets["status"].isin(["Gagné","Perdu","Remboursé"])].copy()
+total_bets = len(st.session_state.bets)
+wins = settled[settled["status"]=="Gagné"]
+losses = settled[settled["status"]=="Perdu"]
+roi_bankroll = (pnl / bankroll_start * 100.0) if bankroll_start > 0 else 0.0
+
+col5, col6, col7, col8, col9 = st.columns(5)
+col5.metric("🎲 Nb total paris", total_bets)
+col6.metric("✅ Paris réglés", settled.shape[0])
+col7.metric("🏆 Gagnés", wins.shape[0])
+col8.metric("❌ Perdus", losses.shape[0])
+col9.metric("📊 ROI (%)", f"{roi_bankroll:.2f}")
+
+st.markdown("---")
 
 # =========================
-# Saisie réactive du pari
+# Saisie de nouveau pari (toujours visible)
 # =========================
-st.markdown("### Ajouter un pari")
+st.subheader("➕ Ajouter un nouveau pari")
 
+# Initialisation des variables de formulaire
 if "form_date" not in st.session_state: st.session_state.form_date = datetime.now().date()
 if "form_event" not in st.session_state: st.session_state.form_event = ""
 if "form_market" not in st.session_state: st.session_state.form_market = ""
@@ -498,7 +517,7 @@ stake_preview = suggested_stake(
 )
 
 follow_suggested = st.checkbox("Mise auto = suivre la suggestion", value=st.session_state.follow_suggested, key="follow_suggested")
-st.markdown(f"Mise suggérée: {format_money(stake_preview)} € (Bankroll dispo: {format_money(available)} €)")
+st.markdown(f"**Mise suggérée:** {format_money(stake_preview)} € (Bankroll dispo: {format_money(available)} €)")
 
 if follow_suggested:
     stake_value = float(round(stake_preview, 2))
@@ -509,7 +528,7 @@ c8, c9 = st.columns([0.5, 1.5])
 c8.write(" ")
 stake_input = c9.number_input("Mise (€)", min_value=0.0, value=stake_value, step=1.0, format="%.2f", key="stake_input")
 
-add_clicked = st.button("Ajouter le pari", use_container_width=True)
+add_clicked = st.button("🎯 Ajouter le pari", use_container_width=True, type="primary")
 if add_clicked:
     stake_to_use = float(stake_input or 0.0)
     odds_val = float(st.session_state.form_odds or 0.0)
@@ -553,116 +572,207 @@ if add_clicked:
         else:
             st.error("Pari ajouté mais problème de sauvegarde GitHub")
 
-# =========================
-# Paris en cours (actions rapides)
-# =========================
-st.markdown("### Paris en cours")
-pending = st.session_state.bets[st.session_state.bets["status"]=="En attente"].copy()
-if pending.empty:
-    st.info("Aucun pari en cours.")
-else:
-    pending = pending.sort_values(by=["date","id"], ascending=[False, False])
-    for _, r in pending.iterrows():
-        bid = int(r["id"])
-        c1, c2, c3, c4, c5, c6, c7 = st.columns([2.5,1.0,1.0,1.0,1.0,1.2,1.0])
-        c1.write(f"[{bid}] {r['date'].date()} — {r['event']} ({r['market']})")
-        c2.write(f"Cote: {r['odds']:.2f}")
-        c3.write(f"Mise: {format_money(r['stake'])} €")
-        win_btn = c4.button("Gagné", key=f"win_{bid}")
-        lose_btn = c5.button("Perdu", key=f"lose_{bid}")
-        void_btn = c6.button("Remboursé", key=f"void_{bid}")
-        del_btn = c7.button("Supprimer", key=f"del_{bid}")
-        if win_btn or lose_btn or void_btn or del_btn:
-            if del_btn:
-                st.session_state.bets = st.session_state.bets[st.session_state.bets["id"] != bid].reset_index(drop=True)
-                st.success(f"Pari {bid} supprimé.")
-            else:
-                df = st.session_state.bets.set_index("id")
-                new_status = "Gagné" if win_btn else ("Perdu" if lose_btn else "Remboursé")
-                df.at[bid, "status"] = new_status
-                st.session_state.bets = df.reset_index()
-                st.success(f"Pari {bid} marqué {new_status}.")
-            st.session_state.bets = recompute_payouts(ensure_schema(st.session_state.bets))
-            save_bets(st.session_state.bets)
-            st.rerun()
+st.markdown("---")
 
 # =========================
-# Mes paris (éditeur)
+# ONGLETS PRINCIPAUX
 # =========================
-st.markdown("### Mes paris")
-if st.session_state.bets.empty:
-    st.info("Aucun pari pour l'instant.")
-else:
-    df_show = st.session_state.bets.sort_values(by=["date","id"], ascending=[False, False]).reset_index(drop=True)
-    edited_df = st.data_editor(
-        df_show,
-        num_rows="fixed",
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "status": st.column_config.SelectboxColumn("Statut", options=["En attente","Gagné","Perdu","Remboursé"], width="small"),
-            "date": st.column_config.DateColumn("Date"),
-            "odds": st.column_config.NumberColumn("Cote", format="%.2f"),
-            "prob": st.column_config.NumberColumn("Prob. (%)", format="%.2f"),
-            "stake": st.column_config.NumberColumn("Mise (€)", format="%.2f"),
-            "payout": st.column_config.NumberColumn("Retour (€)", format="%.2f"),
-            "profit": st.column_config.NumberColumn("Profit (€)", format="%.2f"),
-        },
-        disabled=["id","payout","profit","strategy","kelly_fraction","cap_3pct","fixed_mode","fixed_value"]
-    )
-    base = st.session_state.bets.copy().set_index("id")
-    allowed_cols = ["date","event","market","odds","prob","stake","status","notes"]
-    for _, row in edited_df.iterrows():
-        rid = int(row["id"])
-        if rid in base.index:
-            for c in allowed_cols:
-                base.at[rid, c] = row[c]
-    st.session_state.bets = recompute_payouts(ensure_schema(base.reset_index()))
-    save_bets(st.session_state.bets)
+tab1, tab2, tab3 = st.tabs(["⏳ Paris en cours", "📝 Modification des paris", "📈 Évolution"])
 
-    cA, cB = st.columns(2)
-    with cA:
-        delete_id = st.number_input("Supprimer un pari par ID", min_value=0, value=0, step=1)
-        if st.button("Supprimer (ID)"):
-            if delete_id in st.session_state.bets["id"].values:
-                st.session_state.bets = st.session_state.bets[st.session_state.bets["id"] != delete_id].reset_index(drop=True)
+# =========================
+# ONGLET 1: Paris en cours
+# =========================
+with tab1:
+    st.subheader("⏳ Gestion des paris en cours")
+    
+    pending = st.session_state.bets[st.session_state.bets["status"]=="En attente"].copy()
+    if pending.empty:
+        st.info("🎉 Aucun pari en cours ! Tous vos paris ont été réglés.")
+    else:
+        pending = pending.sort_values(by=["date","id"], ascending=[False, False])
+        
+        st.markdown(f"**{len(pending)} paris en attente** | Total misé: **{format_money(pending['stake'].sum())} €**")
+        
+        for _, r in pending.iterrows():
+            bid = int(r["id"])
+            
+            with st.container():
+                # Affichage des informations du pari
+                col_info, col_actions = st.columns([3, 1])
+                
+                with col_info:
+                    st.markdown(f"""
+                    **#{bid}** • {r['date'].date()} • **{r['event']}** ({r['market']})  
+                    Cote: **{r['odds']:.2f}** • Mise: **{format_money(r['stake'])} €** • Retour potentiel: **{format_money(r['stake'] * r['odds'])} €**
+                    """)
+                    if pd.notna(r['notes']) and r['notes'].strip():
+                        st.caption(f"📝 {r['notes']}")
+                
+                with col_actions:
+                    col1, col2, col3, col4 = st.columns(4)
+                    win_btn = col1.button("🏆", key=f"win_{bid}", help="Gagné")
+                    lose_btn = col2.button("❌", key=f"lose_{bid}", help="Perdu") 
+                    void_btn = col3.button("↩️", key=f"void_{bid}", help="Remboursé")
+                    del_btn = col4.button("🗑️", key=f"del_{bid}", help="Supprimer")
+                    
+                if win_btn or lose_btn or void_btn or del_btn:
+                    if del_btn:
+                        st.session_state.bets = st.session_state.bets[st.session_state.bets["id"] != bid].reset_index(drop=True)
+                        st.success(f"Pari #{bid} supprimé.")
+                    else:
+                        df = st.session_state.bets.set_index("id")
+                        new_status = "Gagné" if win_btn else ("Perdu" if lose_btn else "Remboursé")
+                        df.at[bid, "status"] = new_status
+                        st.session_state.bets = df.reset_index()
+                        st.success(f"Pari #{bid} marqué **{new_status}**.")
+                    st.session_state.bets = recompute_payouts(ensure_schema(st.session_state.bets))
+                    save_bets(st.session_state.bets)
+                    st.rerun()
+                
+                st.divider()
+        
+        # Actions de groupe
+        st.subheader("🔧 Actions de groupe")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("↩️ Marquer tous comme remboursés", type="secondary"):
+                mask = st.session_state.bets["status"]=="En attente"
+                count = mask.sum()
+                st.session_state.bets.loc[mask, "status"] = "Remboursé"
                 st.session_state.bets = recompute_payouts(ensure_schema(st.session_state.bets))
                 save_bets(st.session_state.bets)
-                st.success(f"Pari {delete_id} supprimé.")
-            else:
-                st.warning("ID introuvable.")
-    with cB:
-        if st.button("Marquer tous 'En attente' comme 'Remboursé'"):
-            mask = st.session_state.bets["status"]=="En attente"
-            st.session_state.bets.loc[mask, "status"] = "Remboursé"
-            st.session_state.bets = recompute_payouts(ensure_schema(st.session_state.bets))
-            save_bets(st.session_state.bets)
-            st.success("Tous les paris en attente marqués comme remboursés.")
+                st.success(f"{count} paris marqués comme remboursés.")
+                st.rerun()
 
 # =========================
-# Graphiques d'évolution
+# ONGLET 2: Modification des paris
 # =========================
-st.markdown("### Graphiques d'évolution")
-settled = st.session_state.bets[st.session_state.bets["status"].isin(["Gagné","Perdu","Remboursé"])].copy()
-if not settled.empty:
-    df_curve = settled.copy()
-    df_curve["date_dt"] = pd.to_datetime(df_curve["date"], errors="coerce")
-    df_curve = df_curve.sort_values("date_dt")
-    df_curve["cumul_pnl"] = df_curve["profit"].fillna(0).cumsum()
-    df_curve["bankroll_réalisée"] = bankroll_start + df_curve["cumul_pnl"]
-    st.line_chart(df_curve.set_index("date_dt")[["bankroll_réalisée"]], height=280)
-else:
-    st.info("Ajoute et règle quelques paris pour afficher la courbe de bankroll réalisée.")
+with tab2:
+    st.subheader("📝 Modification et gestion des paris")
+    
+    if st.session_state.bets.empty:
+        st.info("📭 Aucun pari enregistré pour l'instant.")
+    else:
+        df_show = st.session_state.bets.sort_values(by=["date","id"], ascending=[False, False]).reset_index(drop=True)
+        
+        st.markdown(f"**{len(df_show)} paris au total**")
+        
+        edited_df = st.data_editor(
+            df_show,
+            num_rows="fixed",
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "id": st.column_config.NumberColumn("ID", width="small", disabled=True),
+                "status": st.column_config.SelectboxColumn("Statut", options=["En attente","Gagné","Perdu","Remboursé"], width="small"),
+                "date": st.column_config.DateColumn("Date", width="small"),
+                "event": st.column_config.TextColumn("Événement", width="medium"),
+                "market": st.column_config.TextColumn("Marché", width="small"),
+                "odds": st.column_config.NumberColumn("Cote", format="%.2f", width="small"),
+                "prob": st.column_config.NumberColumn("Prob. (%)", format="%.1f", width="small"),
+                "stake": st.column_config.NumberColumn("Mise (€)", format="%.2f", width="small"),
+                "payout": st.column_config.NumberColumn("Retour (€)", format="%.2f", width="small", disabled=True),
+                "profit": st.column_config.NumberColumn("Profit (€)", format="%.2f", width="small", disabled=True),
+                "notes": st.column_config.TextColumn("Notes", width="medium"),
+            },
+            disabled=["id","payout","profit","strategy","kelly_fraction","cap_3pct","fixed_mode","fixed_value"]
+        )
+        
+        # Sauvegarde automatique des modifications
+        base = st.session_state.bets.copy().set_index("id")
+        allowed_cols = ["date","event","market","odds","prob","stake","status","notes"]
+        for _, row in edited_df.iterrows():
+            rid = int(row["id"])
+            if rid in base.index:
+                for c in allowed_cols:
+                    base.at[rid, c] = row[c]
+        st.session_state.bets = recompute_payouts(ensure_schema(base.reset_index()))
+        save_bets(st.session_state.bets)
+        
+        # Outils de suppression
+        st.subheader("🗑️ Suppression de paris")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            delete_id = st.number_input("Supprimer un pari par ID", min_value=0, value=0, step=1)
+            if st.button("🗑️ Supprimer ce pari"):
+                if delete_id in st.session_state.bets["id"].values:
+                    st.session_state.bets = st.session_state.bets[st.session_state.bets["id"] != delete_id].reset_index(drop=True)
+                    st.session_state.bets = recompute_payouts(ensure_schema(st.session_state.bets))
+                    save_bets(st.session_state.bets)
+                    st.success(f"Pari #{delete_id} supprimé.")
+                    st.rerun()
+                else:
+                    st.warning("ID introuvable.")
 
-# KPIs supplémentaires
-total_bets = len(st.session_state.bets)
-wins = settled[settled["status"]=="Gagné"]
-losses = settled[settled["status"]=="Perdu"]
-c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("Nb de paris", total_bets)
-c2.metric("Réglés", settled.shape[0])
-c3.metric("Gagnés", wins.shape[0])
-c4.metric("Perdus", losses.shape[0])
-
-roi_bankroll = (pnl / bankroll_start * 100.0) if bankroll_start > 0 else 0.0
-c5.metric("ROI sur bankroll (%)", f"{roi_bankroll:.2f}")
+# =========================
+# ONGLET 3: Évolution
+# =========================
+with tab3:
+    st.subheader("📈 Analyse de performance et évolution")
+    
+    if not settled.empty:
+        # Graphique d'évolution de la bankroll
+        st.subheader("📊 Évolution de la bankroll réalisée")
+        
+        df_curve = settled.copy()
+        df_curve["date_dt"] = pd.to_datetime(df_curve["date"], errors="coerce")
+        df_curve = df_curve.sort_values("date_dt")
+        df_curve["cumul_pnl"] = df_curve["profit"].fillna(0).cumsum()
+        df_curve["bankroll_réalisée"] = bankroll_start + df_curve["cumul_pnl"]
+        
+        st.line_chart(df_curve.set_index("date_dt")[["bankroll_réalisée"]], height=400)
+        
+        # Métriques détaillées
+        st.subheader("📋 Statistiques détaillées")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        win_rate = (len(wins) / len(settled) * 100) if len(settled) > 0 else 0
+        avg_odds_wins = wins["odds"].mean() if not wins.empty else 0
+        avg_odds_losses = losses["odds"].mean() if not losses.empty else 0
+        avg_stake = settled["stake"].mean() if not settled.empty else 0
+        
+        col1.metric("🎯 Taux de réussite", f"{win_rate:.1f}%")
+        col2.metric("📊 Cote moyenne (gagnés)", f"{avg_odds_wins:.2f}")
+        col3.metric("📉 Cote moyenne (perdus)", f"{avg_odds_losses:.2f}") 
+        col4.metric("💰 Mise moyenne", f"{format_money(avg_stake)} €")
+        
+        # Analyse par mois (si assez de données)
+        if len(settled) >= 5:
+            st.subheader("📅 Performance mensuelle")
+            
+            monthly_stats = settled.copy()
+            monthly_stats["month"] = pd.to_datetime(monthly_stats["date"]).dt.to_period('M')
+            monthly_summary = monthly_stats.groupby("month").agg({
+                "profit": "sum",
+                "stake": ["sum", "count"],
+                "status": lambda x: (x == "Gagné").sum()
+            }).round(2)
+            
+            monthly_summary.columns = ["PnL", "Mise totale", "Nb paris", "Paris gagnés"]
+            monthly_summary["Taux réussite (%)"] = (monthly_summary["Paris gagnés"] / monthly_summary["Nb paris"] * 100).round(1)
+            monthly_summary["ROI (%)"] = (monthly_summary["PnL"] / monthly_summary["Mise totale"] * 100).round(1)
+            
+            st.dataframe(monthly_summary, use_container_width=True)
+        
+        # Graphique en camembert des résultats
+        if len(settled) > 0:
+            st.subheader("🥧 Répartition des résultats")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                result_counts = settled["status"].value_counts()
+                st.bar_chart(result_counts)
+            
+            with col2:
+                st.markdown("**Résumé des résultats :**")
+                for status, count in result_counts.items():
+                    percentage = count / len(settled) * 100
+                    st.write(f"• {status}: {count} paris ({percentage:.1f}%)")
+    
+    else:
+        st.info("📊 Ajoutez et réglez quelques paris pour voir les graphiques d'évolution !")
+        st.markdown("Les graphiques et analyses apparaîtront une fois que vous aurez des paris réglés (Gagnés, Perdus, ou Remboursés).")
