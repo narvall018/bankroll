@@ -13,7 +13,7 @@ id,date,event,market,odds,prob,strategy,kelly_fraction,cap_3pct,fixed_mode,fixed
 13,2025-09-11,nul city,,3.4,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
 14,2025-09-11,Tothenam,,2.0799999999999983,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
 15,2025-09-11,nul crystal,,3.8,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
-16,2025-09-11,everton,,2.44,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
+16,2025-09-11,everton,,2.44,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 18,2025-09-11,Nul fulhal,,3.5,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
 19,2025-09-13,nul cagliari,,3.2,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 20,2025-09-13,juventus,,2.78,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
