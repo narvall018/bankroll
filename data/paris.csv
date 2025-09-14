@@ -8,7 +8,7 @@ id,date,event,market,odds,prob,strategy,kelly_fraction,cap_3pct,fixed_mode,fixed
 8,2025-09-11,espanyol,,2.24,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
 9,2025-09-11,nul ossasuna,,3.2,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 10,2025-09-11,nul sevilla,,3.25,,Mise fixe,,,Montant,20.0,20.0,Gagné,65.0,45.0,
-11,2025-09-11,Lyon,,2.52,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
+11,2025-09-11,Lyon,,2.52,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 12,2025-09-11,Angers,,3.15,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 14,2025-09-11,Tothenam,,2.0799999999999983,,Mise fixe,,,Montant,20.0,20.0,Gagné,41.599999999999966,21.599999999999966,
 15,2025-09-11,nul crystal,,3.8,,Mise fixe,,,Montant,20.0,20.0,Gagné,76.0,56.0,
