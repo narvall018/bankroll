@@ -1,7 +1,7 @@
 id,date,event,market,odds,prob,strategy,kelly_fraction,cap_3pct,fixed_mode,fixed_value,stake,status,payout,profit,notes
 2,2025-09-11,PUELLES,1X2,1.91,78.0,Kelly,0.25,False,,,269.12,En attente,,,
 3,2025-09-11,nul borussia,,3.95,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
-4,2025-09-11,Ausburg,,3.25,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
+4,2025-09-11,Ausburg,,3.25,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 5,2025-09-11,Nul Mainz,,3.65,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 6,2025-09-11,Wolfsburg,,1.99,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 7,2025-09-11,Franckfort,,2.92,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
