@@ -6,7 +6,7 @@ id,date,event,market,odds,prob,strategy,kelly_fraction,cap_3pct,fixed_mode,fixed
 6,2025-09-11,Wolfsburg,,1.99,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 7,2025-09-11,Franckfort,,2.92,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 8,2025-09-11,espanyol,,2.24,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
-9,2025-09-11,nul ossasuna,,3.2,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
+9,2025-09-11,nul ossasuna,,3.2,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 10,2025-09-11,nul sevilla,,3.25,,Mise fixe,,,Montant,20.0,20.0,Gagné,65.0,45.0,
 11,2025-09-11,Lyon,,2.52,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
 12,2025-09-11,Angers,,3.15,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
