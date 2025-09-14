@@ -17,4 +17,4 @@ id,date,event,market,odds,prob,strategy,kelly_fraction,cap_3pct,fixed_mode,fixed
 19,2025-09-13,nul cagliari,,3.2,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 20,2025-09-13,juventus,,2.78,,Mise fixe,,,Montant,20.0,20.0,Gagné,55.599999999999994,35.599999999999994,
 21,2025-09-13,napoli,,2.26,,Mise fixe,,,Montant,20.0,20.0,Gagné,45.199999999999996,25.199999999999996,
-22,2025-09-13,Nul city ,,4.0,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
+22,2025-09-13,Nul city ,,4.0,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
