@@ -20,3 +20,4 @@ id,date,event,market,odds,prob,strategy,kelly_fraction,cap_3pct,fixed_mode,fixed
 22,2025-09-13,Nul city ,,4.0,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 23,2025-09-15,Lille,,2.72,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
 24,2025-09-15,ST PAULI,,4.39,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
+25,2025-09-15,NUL leipzig cologne ,,4.13,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
