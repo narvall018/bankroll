@@ -29,7 +29,7 @@ id,date,event,market,odds,prob,strategy,kelly_fraction,cap_3pct,fixed_mode,fixed
 31,2025-09-15,nul ajax LDC,,3.85,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 32,2025-09-15,nul tothennam LDC,,3.73,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 33,2025-09-16,nul leece cagliari,,2.93,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
-34,2025-09-16,nul bologne genoa,,3.3,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
+34,2025-09-16,nul bologne genoa,,3.3,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 35,2025-09-16,nul torino atalanta,,3.45,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
 36,2025-09-16,Ceremonese,,2.52,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
 37,2025-09-16,nul girone,,3.55,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
