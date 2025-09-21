@@ -24,7 +24,7 @@ id,date,event,market,odds,prob,strategy,kelly_fraction,cap_3pct,fixed_mode,fixed
 26,2025-09-15,NULbournmeouth newcastle,,3.41,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
 27,2025-09-15,Tottenam,,2.92,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 28,2025-09-15,burnley,,3.18,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
-29,2025-09-15,nul fulham,,3.4,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
+29,2025-09-15,nul fulham,,3.4,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 30,2025-09-15,sunderland,,3.44,,Mise fixe,,,Montant,20.0,20.0,En attente,,,
 31,2025-09-15,nul ajax LDC,,3.85,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
 32,2025-09-15,nul tothennam LDC,,3.73,,Mise fixe,,,Montant,20.0,20.0,Perdu,0.0,-20.0,
