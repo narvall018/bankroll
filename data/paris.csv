@@ -1,3 +1,2 @@
 id,date,event,market,odds,prob,strategy,kelly_fraction,cap_3pct,fixed_mode,fixed_value,stake,status,payout,profit,notes
 2,2025-09-11,PUELLES,1X2,1.91,78.0,Kelly,0.25,False,,,269.12,Perdu,0.0,-269.12,
-3,2025-09-30,daniel santos UFC ankalaev perreira,1,1.72,77.0,Kelly,0.25,False,,,194.96,Perdu,0.0,-194.96,
