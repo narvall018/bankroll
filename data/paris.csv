@@ -1,3 +1,4 @@
 id,date,event,market,odds,prob,strategy,kelly_fraction,cap_3pct,fixed_mode,fixed_value,stake,status,payout,profit,notes
 2,2025-09-11,PUELLES,1X2,1.91,78.0,Kelly,0.25,False,,,269.12,Perdu,0.0,-269.12,
 3,2025-09-30,daniel santos UFC ankalaev,,1.74,77.0,Kelly,0.25,False,,,198.7,Gagné,345.738,147.038,
+4,2025-10-11,UFC FIGHT NIGT LUCAS ALMEID,LUCAS ALMEIDA,2.25,72.0,Kelly,0.25,False,,,232.86,En attente,,,
