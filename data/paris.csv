@@ -5,3 +5,4 @@ id,date,event,market,odds,prob,strategy,kelly_fraction,cap_3pct,fixed_mode,fixed
 5,2025-10-14,UFC ZAHABI,ZAHABI,1.74,78.0,Kelly,0.25,False,,,226.62,Gagné,394.3188,167.6988,
 6,2025-10-14,UFC ZAHABI,ZAHABI,1.37,90.0,Kelly,0.25,False,,,295.65,Perdu,0.0,-295.65,
 7,2025-10-25,Ufc azamat,,1.95,78.0,Kelly,0.25,False,,,220.0,Gagné,429.0,209.0,
+9,2025-10-29,UFC LEE,,1.92,69.0,Kelly,0.25,False,,,160.0,En attente,,,
